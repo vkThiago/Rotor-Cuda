@@ -513,128 +513,110 @@ int main(int argc, char** argv)
 
 
 	printf("\n");
-	printf("  Rotor-Cuda v" RELEASE "\n");
-	printf("\n");
-	if (coinType == COIN_BTC)
-		printf("  COMP MODE    : %s\n", compMode == SEARCH_COMPRESSED ? "COMPRESSED" : (compMode == SEARCH_UNCOMPRESSED ? "UNCOMPRESSED" : "COMPRESSED & UNCOMPRESSED"));
-	printf("  COIN TYPE    : %s\n", coinType == COIN_BTC ? "BITCOIN" : "ETHEREUM");
-	printf("  SEARCH MODE  : %s\n", searchMode == (int)SEARCH_MODE_MA ? "Multi Address" : (searchMode == (int)SEARCH_MODE_SA ? "Single Address" : (searchMode == (int)SEARCH_MODE_MX ? "Multi X Points" : "Single X Point")));
-	printf("  DEVICE       : %s\n", (gpuEnable && nbCPUThread > 0) ? "  CPU & GPU" : ((!gpuEnable && nbCPUThread > 0) ? "CPU" : "GPU"));
-	printf("  CPU THREAD   : %d\n", nbCPUThread);
-	if (gpuEnable) {
-		printf("  GPU IDS      : ");
-		for (int i = 0; i < gpuId.size(); i++) {
-			printf("%d", gpuId.at(i));
-			if (i + 1 < gpuId.size())
-				printf(", ");
-		}
-		printf("\n");
-		printf("  GPU GRIDSIZE : ");
-		for (int i = 0; i < gridSize.size(); i++) {
-			printf("%d", gridSize.at(i));
-			if (i + 1 < gridSize.size()) {
-				if ((i + 1) % 2 != 0) {
-					printf("x");
-				}
-				else {
-					printf(", ");
-				}
+printf("  Rotor-Cuda v%s\n", RELEASE);
+printf("\n");
 
-			}
-		}
-		if (gpuAutoGrid)
-			printf(" (Auto grid size)\n");
-		else
-			printf("\n");
-	}
-	printf("  SSE          : %s\n", useSSE ? "YES" : "NO");
-	
-	if (rKey != 0) {
-		printf("  RKEY         : Reload every %llu000000000\n", rKey);
-	}
-	printf("  MAX FOUND    : %d\n", maxFound);
-	if (coinType == COIN_BTC) {
-		switch (searchMode) {
-		case (int)SEARCH_MODE_MA:
-			printf("  BTC HASH160s : %s\n", inputFile.c_str());
-			break;
-		case (int)SEARCH_MODE_SA:
-			printf("  BTC ADDRESS  : %s\n", address.c_str());
-			break;
-		case (int)SEARCH_MODE_MX:
-			printf("  BTC XPOINTS  : %s\n", inputFile.c_str());
-			break;
-		case (int)SEARCH_MODE_SX:
-			printf("  BTC XPOINT   : %s\n", xpoint.c_str());
-			break;
-		default:
-			break;
-		}
-	}
-	else {
-		switch (searchMode) {
-		case (int)SEARCH_MODE_MA:
-			printf("  ETH ADDRESSES: %s\n", inputFile.c_str());
-			break;
-		case (int)SEARCH_MODE_SA:
-			printf("  ETH ADDRESS  : 0x%s\n", address.c_str());
-			break;
-		default:
-			break;
-		}
-	}
-	printf("  OUTPUT FILE  : %s\n", outputFile.c_str());
+if (coinType == COIN_BTC)
+    printf("  COMP MODE    : %s\n", compMode == SEARCH_COMPRESSED ? "COMPRESSED" : (compMode == SEARCH_UNCOMPRESSED ? "UNCOMPRESSED" : "COMPRESSED & UNCOMPRESSED"));
+printf("  COIN TYPE    : %s\n", coinType == COIN_BTC ? "BITCOIN" : "ETHEREUM");
+printf("  SEARCH MODE  : %s\n", searchMode == SEARCH_MODE_MA ? "Multi Address" : (searchMode == SEARCH_MODE_SA ? "Single Address" : (searchMode == SEARCH_MODE_MX ? "Multi X Points" : "Single X Point")));
+printf("  DEVICE       : %s\n", (gpuEnable && nbCPUThread > 0) ? "CPU & GPU" : (!gpuEnable && nbCPUThread > 0) ? "CPU" : "GPU");
+printf("  CPU THREAD   : %d\n", nbCPUThread);
 
+if (gpuEnable) {
+    printf("  GPU IDS      : ");
+    for (size_t i = 0; i < gpuId.size(); i++) {
+        printf("%d", gpuId.at(i));
+        if (i + 1 < gpuId.size())
+            printf(", ");
+    }
+    printf("\n");
+
+    printf("  GPU GRIDSIZE : ");
+    for (size_t i = 0; i < gridSize.size(); i++) {
+        printf("%d", gridSize.at(i));
+        if (i + 1 < gridSize.size()) {
+            if ((i + 1) % 2 != 0) {
+                printf("x");
+            } else {
+                printf(", ");
+            }
+        }
+    }
+    printf("%s\n", gpuAutoGrid ? " (Auto grid size)" : "");
+}
+
+printf("  SSE          : %s\n", useSSE ? "YES" : "NO");
+
+if (rKey != 0) {
+    printf("  RKEY         : Reload every %llu000000000\n", rKey);
+}
+
+printf("  MAX FOUND    : %d\n", maxFound);
+
+if (coinType == COIN_BTC) {
+    switch (searchMode) {
+        case SEARCH_MODE_MA:
+            printf("  BTC HASH160s : %s\n", inputFile.c_str());
+            break;
+        case SEARCH_MODE_SA:
+            printf("  BTC ADDRESS  : %s\n", address.c_str());
+            break;
+        case SEARCH_MODE_MX:
+            printf("  BTC XPOINTS  : %s\n", inputFile.c_str());
+            break;
+        case SEARCH_MODE_SX:
+            printf("  BTC XPOINT   : %s\n", xpoint.c_str());
+            break;
+        default:
+            break;
+    }
+} else {
+    switch (searchMode) {
+        case SEARCH_MODE_MA:
+            printf("  ETH ADDRESSES: %s\n", inputFile.c_str());
+            break;
+        case SEARCH_MODE_SA:
+            printf("  ETH ADDRESS  : 0x%s\n", address.c_str());
+            break;
+        default:
+            break;
+    }
+}
+
+printf("  OUTPUT FILE  : %s\n", outputFile.c_str());
 
 #ifdef WIN64
-	if (SetConsoleCtrlHandler(CtrlHandler, TRUE)) {
-		Rotor* v;
-		switch (searchMode) {
-		case (int)SEARCH_MODE_MA:
-		case (int)SEARCH_MODE_MX:
-			v = new Rotor(inputFile, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
-				maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-			break;
-		case (int)SEARCH_MODE_SA:
-		case (int)SEARCH_MODE_SX:
-			v = new Rotor(hashORxpoint, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
-				maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-			break;
-		default:
-			printf("\n\n  Nothing to do, exiting\n");
-			return 0;
-			break;
-		}
-		v->Search(nbCPUThread, gpuId, gridSize, should_exit);
-		delete v;
-		printf("\n\n  BYE\n");
-		return 0;
-	}
-	else {
-		printf("  Error: could not set control-c handler\n");
-		return -1;
-	}
+if (SetConsoleCtrlHandler(CtrlHandler, TRUE)) {
 #else
-	signal(SIGINT, CtrlHandler);
-	Rotor* v;
-	switch (searchMode) {
-	case (int)SEARCH_MODE_MA:
-	case (int)SEARCH_MODE_MX:
-		v = new Rotor(inputFile, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
-			maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-		break;
-	case (int)SEARCH_MODE_SA:
-	case (int)SEARCH_MODE_SX:
-		v = new Rotor(hashORxpoint, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
-			maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-		break;
-	default:
-		printf("\n\n  Nothing to do, exiting\n");
-		return 0;
-		break;
-	}
-	v->Search(nbCPUThread, gpuId, gridSize, should_exit);
-	delete v;
-	return 0;
+signal(SIGINT, CtrlHandler);
 #endif
+
+Rotor* rotorInstance = nullptr;
+switch (searchMode) {
+    case SEARCH_MODE_MA:
+    case SEARCH_MODE_MX:
+        rotorInstance = new Rotor(inputFile, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
+                                  maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
+        break;
+    case SEARCH_MODE_SA:
+    case SEARCH_MODE_SX:
+        rotorInstance = new Rotor(hashORxpoint, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
+                                  maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
+        break;
+    default:
+        printf("\n\n  Nothing to do, exiting\n");
+        return 0;
 }
+
+if (rotorInstance != nullptr) {
+    rotorInstance->Search(nbCPUThread, gpuId, gridSize, should_exit);
+    delete rotorInstance;
+    printf("\n\n  BYE\n");
+} else {
+    printf("  Error: could not create Rotor instance\n");
+    return -1;
+}
+
+return 0;
+
