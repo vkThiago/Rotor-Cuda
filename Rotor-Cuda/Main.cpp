@@ -58,139 +58,121 @@ void usage()
 
 // ----------------------------------------------------------------------------
 
-void getInts(string name, vector<int>& tokens, const string& text, char sep)
-{
+void getInts(string name, vector<int>& tokens, const string& text, char sep) {
+    size_t start = 0, end = 0;
+    tokens.clear();
+    int item;
 
-	size_t start = 0, end = 0;
-	tokens.clear();
-	int item;
+    try {
+        while ((end = text.find(sep, start)) != string::npos) {
+            item = std::stoi(text.substr(start, end - start));
+            tokens.push_back(item);
+            start = end + 1;
+        }
+        item = std::stoi(text.substr(start));
+        tokens.push_back(item);
+    }
+    catch (const std::invalid_argument& e) {
+        printf("  Invalid %s argument, number expected\n", name.c_str());
+        usage();
+        exit(-1);
+    }
+}
 
-	try {
 
-		while ((end = text.find(sep, start)) != string::npos) {
-			item = std::stoi(text.substr(start, end - start));
-			tokens.push_back(item);
-			start = end + 1;
-		}
+// ----------------------------------------------------------------------------
 
-		item = std::stoi(text.substr(start));
-		tokens.push_back(item);
+int parseSearchMode(const std::string& s) {
+    std::string stype = s;
+    std::transform(stype.begin(), stype.end(), stype.begin(), ::tolower);
 
-	}
-	catch (std::invalid_argument&) {
-
-		printf("  Invalid %s argument, number expected\n", name.c_str());
-		usage();
-		exit(-1);
-
-	}
-
+    if (stype == "address") {
+        return SEARCH_MODE_SA;
+    } else if (stype == "xpoint") {
+        return SEARCH_MODE_SX;
+    } else if (stype == "addresses") {
+        return SEARCH_MODE_MA;
+    } else if (stype == "xpoints") {
+        return SEARCH_MODE_MX;
+    } else {
+        printf("  Invalid search mode format: %s", stype.c_str());
+        usage();
+        exit(-1);
+    }
 }
 
 // ----------------------------------------------------------------------------
 
-int parseSearchMode(const std::string& s)
-{
-	std::string stype = s;
-	std::transform(stype.begin(), stype.end(), stype.begin(), ::tolower);
+int parseCoinType(const std::string& s) {
+    std::string stype = s;
+    std::transform(stype.begin(), stype.end(), stype.begin(), ::tolower);
 
-	if (stype == "address") {
-		return SEARCH_MODE_SA;
-	}
-
-	if (stype == "xpoint") {
-		return SEARCH_MODE_SX;
-	}
-
-	if (stype == "addresses") {
-		return SEARCH_MODE_MA;
-	}
-
-	if (stype == "xpoints") {
-		return SEARCH_MODE_MX;
-	}
-
-	printf("  Invalid search mode format: %s", stype.c_str());
-	usage();
-	exit(-1);
+    if (stype == "btc") {
+        return COIN_BTC;
+    } else if (stype == "eth") {
+        return COIN_ETH;
+    } else {
+        printf("  Invalid coin name: %s", stype.c_str());
+        usage();
+        exit(-1);
+    }
 }
 
 // ----------------------------------------------------------------------------
 
-int parseCoinType(const std::string& s)
-{
-	std::string stype = s;
-	std::transform(stype.begin(), stype.end(), stype.begin(), ::tolower);
-
-	if (stype == "btc") {
-		return COIN_BTC;
-	}
-
-	if (stype == "eth") {
-		return COIN_ETH;
-	}
-
-	printf("  Invalid coin name: %s", stype.c_str());
-	usage();
-	exit(-1);
-}
-
-// ----------------------------------------------------------------------------
-
-bool parseRange(const std::string& s, Int& start, Int& end)
-{
-	size_t pos = s.find(':');
-
-	if (pos == std::string::npos) {
-		start.SetBase16(s.c_str());
-		end.Set(&start);
-		end.Add(0xFFFFFFFFFFFFULL);
-	}
-	else {
-		std::string left = s.substr(0, pos);
-
-		if (left.length() == 0) {
-			start.SetInt32(1);
-		}
-		else {
-			start.SetBase16(left.c_str());
-		}
-
-		std::string right = s.substr(pos + 1);
-
-		if (right[0] == '+') {
-			Int t;
-			t.SetBase16(right.substr(1).c_str());
-			end.Set(&start);
-			end.Add(&t);
-		}
-		else {
-			end.SetBase16(right.c_str());
-		}
-	}
-
-	return true;
+bool parseRange(const std::string& s, Int& start, Int& end) {
+    size_t pos = s.find(':');
+    if (pos == std::string::npos) {
+        start.SetBase16(s.c_str());
+        end.Set(&start);
+        end.Add(0xFFFFFFFFFFFFULL);
+    } else {
+        std::string left = s.substr(0, pos);
+        if (left.empty()) {
+            start.SetInt32(1);
+        } else {
+            start.SetBase16(left.c_str());
+        }
+        std::string right = s.substr(pos + 1);
+        if (right[0] == '+') {
+            Int t;
+            t.SetBase16(right.substr(1).c_str());
+            end.Set(&start);
+            end.Add(&t);
+        } else {
+            end.SetBase16(right.c_str());
+        }
+    }
+    return true;
 }
 
 #ifdef WIN64
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
-{
-	switch (fdwCtrlType) {
-	case CTRL_C_EVENT:
-		//printf("\n\nCtrl-C event\n\n");
-		should_exit = true;
-		return TRUE;
-
-	default:
-		return TRUE;
-	}
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
+    switch (fdwCtrlType) {
+        case CTRL_C_EVENT:
+            should_exit = true;
+            return TRUE;
+        default:
+            return TRUE;
+    }
 }
 #else
 void CtrlHandler(int signum) {
-	printf("\n\n  BYE\n");
-	exit(signum);
+    printf("\n\n  BYE\n");
+    exit(signum);
 }
 #endif
+
+int main(int argc, char** argv) {
+    // Global Init
+    Timer::Init();
+    rseed(Timer::getSeed32());
+
+    #ifdef WIN64
+    SetConsoleCtrlHandler(CtrlHandler, TRUE);
+    #else
+    signal(SIGINT, CtrlHandler);
+    #endif
 
 int main(int argc, char** argv)
 {
